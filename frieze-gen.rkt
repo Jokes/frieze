@@ -58,6 +58,11 @@
   (f-ref f (sub1 x) y))
 (define (northwest-of f x y)
   (f-ref f (if (even? y) (sub1 x) x) (sub1 y)))
+
+(define (go-southwest x y width)
+  (modulo (if (even? y) (sub1 x) x) width))
+(define (go-southeast x y width)
+  (modulo (if (even? y) x (add1 x)) width))
       
 
 (define (f-iterate f1)
@@ -120,7 +125,7 @@
                     (vector-set! v pos 1)
                     (unless (>= n (length turns))
                       (set! pos (if (list-ref turns n)
-                                    (if (even? n) (sub1 pos) pos)
-                                    (if (even? n) pos (add1 pos)))))
+                                    (go-southeast pos n width)
+                                    (go-southwest pos n width))))
                     v)))])
     (fill-frieze (Frieze grid height))))

@@ -6,13 +6,18 @@
 
 (define phi 1.6180339887498948482)
 
+(define (zero-path x y s)
+  (let ([p (new dc-path%)]
+        [ps (* phi s)])
+    (send p move-to x (- y ps))
+    (send p line-to (+ x s) y)
+    (send p line-to x (+ y ps))
+    (send p line-to (- x s) y)
+    (send p close)
+    p))
+
 (define (draw-zero dc x y s) ; the diamond
-  (let ([ps (* phi s)])
-    (send dc draw-line x (- y ps) (+ x s) y) ; north to east
-    (send dc draw-line (+ x s) y x (+ y ps)) ; east to south
-    (send dc draw-line x (+ y ps) (- x s) y) ; south to west
-    (send dc draw-line (- x s) y x (- y ps)) ; west to north
-    ))
+  (send dc draw-path (zero-path x y s)))
 
 (define (draw-one dc x y s) ; vertical central line
   (let ([ps (* phi s)])
@@ -61,15 +66,26 @@
   (when (bitwise-bit-set? d 5)
     (draw-32 dc x y s)))
 
+(define (clip-digit dc x y s)
+  (let-values ([(r) (new region% [dc dc])]
+               [(r2) (new region% [dc dc])]
+               [(w h) (send dc get-size)])
+    (send r set-rectangle 0 0 w h)
+    (send r2 set-path (zero-path x y s))
+    (send r subtract r2)
+    r))
+
 (define (draw-number n dc x y s)
-  (send dc set-pen "black" 2 'solid)
   (draw-digit 0 dc x y s)
   (send dc set-pen "black" 1 'solid)
   (if (< n 64)
       (draw-digit n dc x y s)
       (let* ([d1 (modulo n 64)]
              [d2 (/ (- n d1) 64)])
-        (error))))
+        (draw-number d2 dc x y (/ s 2))
+        (send dc set-clipping-region (clip-digit dc x y (/ s 2)))
+        (draw-digit d1 dc x y s)
+        (send dc set-clipping-region #f))))
 
 
 ; canvasing things
@@ -91,13 +107,15 @@
                 [(row-scale) (/ w row-length-real)]
                 [(column-scale) (/ h column-length-real)]
                 [(true-scale) (min row-scale column-scale)]
-                [(start-x) (- cx (/ (* (- row-length 1/2) true-scale) 2))]
-                [(start-y) (- cy (/ (* (- column-length 2) true-scale) 2))])
+                [(start-x) (- cx (* (- row-length 1/2) true-scale 1/2))]
+                [(start-y) (* phi true-scale 3/4)])
+    (send dc draw-rectangle 0 0 w h)
     (for([i (in-range column-length)])
       (for ([j (in-range row-length)])
+        (send dc set-pen "black" 2 'solid)
         (draw-number
          (vector-ref (vector-ref the-grid i) j) dc
-         (if (even? i)
+         (if (odd? i)
              (+ start-x (* true-scale (+ j 1/2)))
              (+ start-x (* true-scale j)))
          (+ start-y (* true-scale i phi 1/2)) (* true-scale 1/2))
