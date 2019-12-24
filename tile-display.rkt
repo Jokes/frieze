@@ -108,7 +108,7 @@
                 [(column-scale) (/ h column-length-real)]
                 [(true-scale) (min row-scale column-scale)]
                 [(start-x) (- cx (* (- row-length 1/2) true-scale 1/2))]
-                [(start-y) (* phi true-scale 3/4)])
+                [(start-y) (- cy (* (- column-length 1) phi true-scale 1/4))])
     (send dc draw-rectangle 0 0 w h)
     (for([i (in-range column-length)])
       (for ([j (in-range row-length)])
