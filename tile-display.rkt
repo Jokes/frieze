@@ -7,15 +7,9 @@
 (define phi 1.6180339887498948482)
 
 (define palette
-  #;(list (make-color 220 220 229) (make-color 209 208 225) (make-color 198 195 217)
-          (make-color 184 180 204) (make-color 170 165 189))
-  #;(list (make-color 200 201 226) (make-color 166 168 207) (make-color 131 134 185)
-          (make-color 99 102 164) (make-color 72 76 144))
-  #;(list (make-color 230 231 252) (make-color 210 212 246) (make-color 188 190 238)
-          (make-color 166 169 229) (make-color 143 147 216))
 (list
- (make-color 205 204 241) (make-color 180 178 223) (make-color 156 152 203) (make-color 140 134 188)
- (make-color 120 113 169) (make-color 103 95 155) (make-color 82 74 124)))
+ (make-color 236 245 255) (make-color 213 226 252) (make-color 189 206 247) (make-color 164 187 243)
+ (make-color 148 159 225) (make-color 134 133 207) (make-color 119 109 188)))
 (define (get-fill-col n)
   (list-ref palette (modulo n (length palette))))
 
@@ -140,6 +134,16 @@
         ))
     ))
 
+; export
+(define (export-grid)
+  (let*-values ([(w h) (send (send main-canvas get-dc) get-size)]
+                [(bmp) (make-bitmap w h)]
+                [(bdc) (new bitmap-dc% [bitmap bmp])])
+    (draw-grid bdc)
+    (send bmp save-file
+          (string-append
+           (string-join (map number->string (vector->list (vector-ref the-grid 1))))
+           ".png") 'png)))
 
 ; windowing things
 (define frame (new frame% [label "Tiles"] [height 600] [width 800]))
@@ -164,6 +168,8 @@
                       (Frieze-grid (from-top (map string->number spl)))
                       (Frieze-grid (from-bolt (map (λ (s) (equal? s "#t")) spl))))))
           (send main-canvas refresh))]))
+(define export-b 
+  (new button% [parent menu-p] [label "Export"] [callback (λ (b e) (export-grid))]))
 
 (define main-canvas
   (new canvas% [parent canvas-p]
