@@ -1,5 +1,7 @@
 #lang racket
 
+(provide Frieze Frieze-grid from-top from-bolt)
+
 ; okay what are my goals here
 
 ; step one: a frieze pattern generator, given either a lightning bolt or a top row

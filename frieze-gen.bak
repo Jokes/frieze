@@ -1,5 +1,7 @@
 #lang racket
 
+(provide Frieze Frieze-width f-ref from-top from-bolt)
+
 ; okay what are my goals here
 
 ; step one: a frieze pattern generator, given either a lightning bolt or a top row
@@ -39,6 +41,7 @@
    (vector-map vector-copy (Frieze-grid f))
    (Frieze-height f)))
 
+; nb: even rows are offset forward
 (define (north-of f x y)
   (f-ref f x (- y 2)))
 (define (northeast-of f x y)
@@ -83,12 +86,9 @@
     f))
 
 (define (fill-frieze f)
-  (displayln f)
   (if (f-complete? f)
       f
       (let ([f2 (f-iterate f)])
-        (displayln f)
-        (displayln f2)
         (if (equal? f f2)
             #f ; something got fucked up here
             (fill-frieze f2)))))
@@ -107,3 +107,20 @@
              top-row
              (make-vector (length tr) #f))))
       height))))
+
+(define (from-bolt turns)
+  (let* ([height (add1 (length turns))]
+         [width (+ height 3)]
+         [start (floor (/ width 2))]
+         [pos start]
+         [grid (build-vector
+                height
+                (λ (n)
+                  (let ([v (make-vector width #f)])
+                    (vector-set! v pos 1)
+                    (unless (>= n (length turns))
+                      (set! pos (if (list-ref turns n)
+                                    (if (even? n) (sub1 pos) pos)
+                                    (if (even? n) pos (add1 pos)))))
+                    v)))])
+    (fill-frieze (Frieze grid height))))

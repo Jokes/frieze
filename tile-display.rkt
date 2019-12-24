@@ -1,5 +1,7 @@
 #lang racket/gui
 
+(require "frieze-gen.rkt")
+
 ; digit-construction things
 
 (define phi 1.6180339887498948482)
@@ -71,8 +73,10 @@
 
 
 ; canvasing things
-(define the-grid
+(define all-digits
   (build-vector 8 (λ (n) (build-vector 8 (λ (m) (+ (* n 8) m))))))
+(define the-grid all-digits)
+
 (define (draw-grid dc)
   (send dc set-smoothing 'smoothed)
   ; draw the grid
@@ -87,7 +91,7 @@
                 [(row-scale) (/ w row-length-real)]
                 [(column-scale) (/ h column-length-real)]
                 [(true-scale) (min row-scale column-scale)]
-                [(start-x) (- cx (/ (* row-length true-scale) 2))]
+                [(start-x) (- cx (/ (* (- row-length 1/2) true-scale) 2))]
                 [(start-y) (- cy (/ (* (- column-length 2) true-scale) 2))])
     (for([i (in-range column-length)])
       (for ([j (in-range row-length)])
@@ -103,10 +107,32 @@
 
 ; windowing things
 (define frame (new frame% [label "Tiles"] [height 600] [width 800]))
+(define canvas-p (new vertical-panel% [parent frame] [alignment '(center center)]))
+(define menu-p (new horizontal-panel% [parent canvas-p] [alignment '(center center)]
+                    [stretchable-height #f]))
 
-(new canvas% [parent frame]
-     [paint-callback
-      (λ (canvas dc)
-        (draw-grid dc))])
+(define digits-b 
+  (new button% [parent menu-p] [label "Display All Digits"]
+       [callback (λ (b e) (set! the-grid all-digits) (send main-canvas refresh))]))
+
+(define input-t
+  (new text-field% [parent menu-p] [label ""]))
+
+(define input-b
+  (new button% [parent menu-p] [label "Generate Frieze"]
+       [callback
+        (λ (b e)
+          (set! the-grid
+                (let ([spl (string-split (send input-t get-value))])
+                  (if (string->number (first spl))
+                      (Frieze-grid (from-top (map string->number spl)))
+                      (Frieze-grid (from-bolt (map (λ (s) (equal? s "#t")) spl))))))
+          (send main-canvas refresh))]))
+
+(define main-canvas
+  (new canvas% [parent canvas-p]
+       [paint-callback
+        (λ (canvas dc)
+          (draw-grid dc))]))
 
 (send frame show #t)
