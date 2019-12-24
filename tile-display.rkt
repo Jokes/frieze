@@ -6,6 +6,19 @@
 
 (define phi 1.6180339887498948482)
 
+(define palette
+  #;(list (make-color 220 220 229) (make-color 209 208 225) (make-color 198 195 217)
+          (make-color 184 180 204) (make-color 170 165 189))
+  #;(list (make-color 200 201 226) (make-color 166 168 207) (make-color 131 134 185)
+          (make-color 99 102 164) (make-color 72 76 144))
+  #;(list (make-color 230 231 252) (make-color 210 212 246) (make-color 188 190 238)
+          (make-color 166 169 229) (make-color 143 147 216))
+(list
+ (make-color 205 204 241) (make-color 180 178 223) (make-color 156 152 203) (make-color 140 134 188)
+ (make-color 120 113 169) (make-color 103 95 155) (make-color 82 74 124)))
+(define (get-fill-col n)
+  (list-ref palette (modulo n (length palette))))
+
 (define (zero-path x y s)
   (let ([p (new dc-path%)]
         [ps (* phi s)])
@@ -87,6 +100,11 @@
         (draw-digit d1 dc x y s)
         (send dc set-clipping-region #f))))
 
+(define (draw-number-base n dc x y s)
+  (send dc set-brush (get-fill-col n) 'solid)
+  (send dc draw-path (zero-path x y s))
+  (send dc set-brush "black" 'transparent)
+  (draw-number n dc x y s))
 
 ; canvasing things
 (define all-digits
@@ -113,7 +131,7 @@
     (for([i (in-range column-length)])
       (for ([j (in-range row-length)])
         (send dc set-pen "black" 2 'solid)
-        (draw-number
+        (draw-number-base
          (vector-ref (vector-ref the-grid i) j) dc
          (if (odd? i)
              (+ start-x (* true-scale (+ j 1/2)))
