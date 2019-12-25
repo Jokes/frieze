@@ -6,10 +6,19 @@
 
 (define phi 1.6180339887498948482)
 
+(define palette-lookup
+  (make-hash
+   (list
+    (list "Ice" (make-color 236 245 255) (make-color 213 226 252) (make-color 189 206 247)
+          (make-color 164 187 243) (make-color 148 159 225) (make-color 134 133 207)
+          (make-color 119 109 188))
+    (list "Sunset" (make-color 255 253 228) (make-color 249 230 192) (make-color 237 186 146)
+          (make-color 220 134 97) (make-color 201 110 103) (make-color 179 88 110)
+          (make-color 154 65 118)))))
+(define palette-choices (sort (hash-keys palette-lookup) string<?))
+
 (define palette
-(list
- (make-color 236 245 255) (make-color 213 226 252) (make-color 189 206 247) (make-color 164 187 243)
- (make-color 148 159 225) (make-color 134 133 207) (make-color 119 109 188)))
+  (hash-ref palette-lookup (first palette-choices)))
 (define (get-fill-col n)
   (list-ref palette (modulo n (length palette))))
 
@@ -168,6 +177,16 @@
                       (Frieze-grid (from-top (map string->number spl)))
                       (Frieze-grid (from-bolt (map (λ (s) (equal? s "#t")) spl))))))
           (send main-canvas refresh))]))
+
+(define pal-drop
+  (new choice% [label "Palette: "]
+       [parent menu-p]
+       [callback
+        (λ (c e)
+          (set! palette (hash-ref palette-lookup (list-ref palette-choices (send c get-selection))))
+          (send main-canvas refresh))]
+       [choices palette-choices]))
+
 (define export-b 
   (new button% [parent menu-p] [label "Export"] [callback (λ (b e) (export-grid))]))
 
