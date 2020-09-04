@@ -14,7 +14,10 @@
           (make-color 119 109 188))
     (list "Sunset" (make-color 255 253 228) (make-color 249 230 192) (make-color 237 186 146)
           (make-color 220 134 97) (make-color 201 110 103) (make-color 179 88 110)
-          (make-color 154 65 118)))))
+          (make-color 154 65 118))
+    (list "Love" (make-color 255 245 236) (make-color 252 226 213) (make-color 247 206 189)
+          (make-color 243 187 164) (make-color 225 159 148) (make-color 207 133 134)
+          (make-color 188 109 119)))))
 (define palette-choices (sort (hash-keys palette-lookup) string<?))
 
 (define palette
